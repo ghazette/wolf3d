@@ -6,10 +6,30 @@
 # include "../libft/includes/libft.h"
 # include <math.h>
 # include "map.h"
+# include "input.h"
 # include "../minilibx/mlx.h"
 # define WIN_H 960
 # define WIN_W 1600
 # define WIN_NAME "Wolf3D"
+#ifndef M_PI
+# define M_PI 3.14159265359
+#endif
+#define DEGTORAD(DEG)  (DEG * M_PI / 180)
+
+typedef struct      s_vec2
+{
+    int             x;
+    int             y;
+}                   t_vec2;
+
+typedef struct      s_player
+{
+    t_vec2          cellpos;
+    t_vec2          incellpos;
+    t_vec2          direction;
+    double          angle;
+    int             move;
+}                   t_player;
 
 typedef struct      s_mlx
 {
@@ -21,6 +41,7 @@ typedef struct      s_mlx
     int             ed;
     void            *img;
     char            *pixel_img;
+    t_player        player;
 }                   t_mlx;
 
 
