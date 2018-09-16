@@ -63,6 +63,8 @@ static void get_xa(t_sdl *sdl, t_raycast *ray, double angle)
 
     angle_computed = tan(DEGTORAD(360 - angle));
     ray->xa = (int)sdl->player->pos.x + (sdl->player->pos.y - ray->ya) / angle_computed;
+    if (ray->xa % CELLSIZE != 0)
+        ray->xa++;
     ray->stepxa = CELLSIZE / angle_computed;
     ray->cella.x = ray->xa / CELLSIZE;
     if (angle > 0.0 && angle < 180.0)
@@ -131,10 +133,12 @@ static double   raycast_horizontal(t_sdl *sdl, t_raycast *ray, double angle)
     double i;
 
     i = 0;
+        //printf("ray : x %d y %d\n", ray->xa, ray->ya);
+        //printf("stepx : %d\nstepy : %d\n\n", ray->stepxa, ray->stepya);
     while (!is_blocking_cell(ray, sdl->map, HORIZONTAL) && i < 30)
     {
-       // printf("player x %.2f y %.2f\n", sdl->player->pos.x, sdl->player->pos.y);
-       // printf("xa %d ya %d\n", ray->xa, ray->ya);
+        //printf("ray : x %d y %d\n", ray->xa, ray->ya);
+       // printf("stepx : %d\nstepy : %d\n\n", ray->stepxa, ray->stepya);
         if (ray->stopa)
             break ;
         ray->xa += ray->stepxa;
@@ -145,8 +149,6 @@ static double   raycast_horizontal(t_sdl *sdl, t_raycast *ray, double angle)
             ray->cella.y--;
         i++;
     }
-        //    printf("player x %.2f y %.2f\n", sdl->player->pos.x, sdl->player->pos.y);
-        //printf("xa %d ya %d\n", ray->xa, ray->ya);
     if (((angle > 315 && angle < 360) || (angle > 0 && angle < 45)) || (angle > 135 && angle < 225))
         return (fabs((int)(sdl->player->pos.x - ray->xa) / cos(DEGTORAD(angle))));
     else
@@ -201,7 +203,7 @@ double wallh;
                     y[0] = 0;
                 if (y[1] > WIN_H)
                     y[1] = WIN_H;
-                draw_line(i + 640, y, sdl, 0x00CC00);
+                draw_line(i + 640, y, sdl, 0x00FF00);
             //printf("cell hit [%d][%d]\n", ray.cella.y, ray.cella.x);
         }
         else
@@ -219,7 +221,7 @@ double wallh;
                 y[0] = 0;
             if (y[1] > WIN_H)
                 y[1] = WIN_H;
-            draw_line(i + 640, y, sdl, 0x0CC000);
+            draw_line(i + 640, y, sdl, 0x0FF000);
         }
         angle -= sdl->player->view.rayangle;
         angleb += sdl->player->view.rayangle;

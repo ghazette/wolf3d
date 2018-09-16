@@ -37,7 +37,7 @@ int main(int ac, char **av)
         return (0);
     if (!(load_map_and_init_sdl(av[1], &sdl)))
         return (0);
-    sdl->player = init_player(sdl->map, 86.959738, 320.122207);
+    sdl->player = init_player(sdl->map,80, 80);
     start_loop(0, sdl);
     return (0);
 }

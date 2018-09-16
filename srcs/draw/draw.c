@@ -53,7 +53,7 @@ static void draw_ray(t_sdl *sdl)
 
 void        draw(t_sdl *sdl)
 {
-    draw_point(sdl->player->pos.x, sdl->player->pos.y, sdl, 0xFFFFFF);
+    /*draw_point(sdl->player->pos.x, sdl->player->pos.y, sdl, 0xFFFFFF);
     draw_point(sdl->player->pos.x+1, sdl->player->pos.y, sdl, 0xFFFFFF);
     draw_point(sdl->player->pos.x-1, sdl->player->pos.y, sdl, 0xFFFFFF);
     draw_point(sdl->player->pos.x, sdl->player->pos.y+1, sdl, 0xFFFFFF);
@@ -62,7 +62,7 @@ void        draw(t_sdl *sdl)
     draw_point(sdl->player->pos.x + sdl->player->direction.x, sdl->player->pos.y + sdl->player->direction.y, sdl, 0x00FF00);
 
     draw_grid(sdl);
-    draw_ray(sdl);
+    draw_ray(sdl);*/
 
     raycast(sdl);
 }
