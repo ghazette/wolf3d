@@ -24,7 +24,7 @@ static int  check_header(int fd)
     return (0);
 }
 
-int        load_map_and_init_mlx(char *fn, t_mlx **mlx)
+int        load_map_and_init_sdl(char *fn, t_sdl **sdl)
 {
     t_map   *map;
     int     fd;
@@ -44,7 +44,7 @@ int        load_map_and_init_mlx(char *fn, t_mlx **mlx)
     set_size(map);
     if (!(fill_map_grid(fd, map)))
         return (0);
-    if (!(*mlx = init_all_mlx(map)))
+    if (!(*sdl = init_sdl(map)))
         return (0);
     close(fd);
     return (1);

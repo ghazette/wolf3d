@@ -1,94 +1,99 @@
 #include "../../includes/wolf3d.h"
 
-static int is_cell(int x, int y, t_map *map)
+static void draw_grid(t_sdl *sdl)
 {
-    int i;
+ 
+    int i = 0;
     int j;
+    int k;
+    int y[2];
 
-    i = x / 64;
-    j = y / 64;
-    if (map->grid[j][i] > 0)
-        return (1);
-    return (0);
-}
-
-static void rotate(t_mlx *mlx)
-{
-    int x;
-    int y;
-    double angle;
-    
-    angle = DEGTORAD(mlx->player.angle);
-    x = mlx->player.direction.x * cos(angle) + mlx->player.direction.y * (-sin(angle));
-    y = mlx->player.direction.x * sin(angle) + mlx->player.direction.y * cos(angle);
-    mlx->player.direction.x = x;
-    mlx->player.direction.y = y;
-}
-
-static void move(t_mlx *mlx)
-{
-    if (mlx->player.move)
+    while (sdl->map->grid[i] != 0)
     {
-        mlx->player.cellpos.x += mlx->player.direction.x;
-        mlx->player.cellpos.y += mlx->player.direction.y;
+        j = 0;
+        while (j < sdl->map->width)
+        {
+            if (sdl->map->grid[i][j] >= 1)
+            {
+                k = 0;
+                y[0] = (i * CELLSIZE);
+                y[1] = y[0] + CELLSIZE;
+                while (k < CELLSIZE)
+                {
+                    draw_line((j * CELLSIZE) + k, y, sdl, 0x00AACD);
+                    k++;
+                }
+            }
+            j++;
+        }
+        i++;
     }
 }
 
-void        raycasting(t_mlx *mlx)
+static void draw_ray(t_sdl *sdl)
 {
-    int cellsize;
-
-    cellsize = 16;
-    rotate(mlx);
-    move(mlx);
-    draw_point(mlx->player.cellpos.x, mlx->player.cellpos.y, mlx, 0xFFFFFF);
-    draw_point(mlx->player.cellpos.x+1, mlx->player.cellpos.y, mlx, 0xFFFFFF);
-    draw_point(mlx->player.cellpos.x-1, mlx->player.cellpos.y, mlx, 0xFFFFFF);
-    draw_point(mlx->player.cellpos.x, mlx->player.cellpos.y+1, mlx, 0xFFFFFF);
-    draw_point(mlx->player.cellpos.x+1, mlx->player.cellpos.y+1, mlx, 0xFFFFFF);
-    draw_point(mlx->player.cellpos.x-1, mlx->player.cellpos.y+1, mlx, 0xFFFFFF);
-    draw_point(mlx->player.cellpos.x + mlx->player.direction.x, mlx->player.cellpos.y + mlx->player.direction.y, mlx, 0xFF0000);
-    mlx->player.move = 0;
-    mlx->player.direction.x = 10;
-    mlx->player.direction.y = 0;
-}
-
-void        draw(t_mlx *mlx)
-{
-    if (mlx->img)
-        mlx_destroy_image(mlx->ptr, mlx->img);
-    if (!(mlx->img = mlx_new_image(mlx->ptr, WIN_W, WIN_H)))
-        return;
-    mlx->pixel_img = mlx_get_data_addr(mlx->img,
-    &mlx->bpp, &mlx->line, &mlx->ed);
-    raycasting(mlx);
-    //draw routine
-    mlx_put_image_to_window(mlx->ptr, mlx->win, mlx->img, 0, 0);
-}
-
-static int  conv_coord(int x, int y, t_mlx *mlx)
-{
-    return ((x * ((mlx->bpp) / 8)) + (y * mlx->line));
-}
-
-void        draw_point(int x, int y, t_mlx *mlx, t_uint color)
-{
-    int pixel_pos;
-
-    pixel_pos = conv_coord(x, y, mlx);
-    if (pixel_pos < (WIN_W * WIN_H * (mlx->bpp / 8)) && pixel_pos >= 0)
+    int x;
+    int y;
+    int i = 0;
+    double viewangle = sdl->player->view.angle + (sdl->player->view.fov / 2);
+    double angle;
+    
+    while (i < sdl->player->view.projectionplane)
     {
-        if (color != 0)
-        {
-            mlx->pixel_img[pixel_pos] = (char)(color & 0xff);
-            mlx->pixel_img[pixel_pos + 1] = (char)((color >> 8) & 0xff);
-            mlx->pixel_img[pixel_pos + 2] = (char)((color >> 16) & 0xff);
-        }
-        else
-        {
-            mlx->pixel_img[pixel_pos] = (char)0;
-            mlx->pixel_img[pixel_pos + 1] = (char)0;
-            mlx->pixel_img[pixel_pos + 2] = (char)0;
-        }
+        angle = DEGTORAD(viewangle);
+        x = 100 * cos(angle);
+        y = 100 * sin(angle);
+        viewangle -= sdl->player->view.rayangle;
+        draw_point(sdl->player->pos.x + x, sdl->player->pos.y + y, sdl, 0xFF0000);
+        i++;
+    }
+
+}
+
+
+void        draw(t_sdl *sdl)
+{
+    draw_point(sdl->player->pos.x, sdl->player->pos.y, sdl, 0xFFFFFF);
+    draw_point(sdl->player->pos.x+1, sdl->player->pos.y, sdl, 0xFFFFFF);
+    draw_point(sdl->player->pos.x-1, sdl->player->pos.y, sdl, 0xFFFFFF);
+    draw_point(sdl->player->pos.x, sdl->player->pos.y+1, sdl, 0xFFFFFF);
+    draw_point(sdl->player->pos.x+1, sdl->player->pos.y+1, sdl, 0xFFFFFF);
+    draw_point(sdl->player->pos.x-1, sdl->player->pos.y+1, sdl, 0xFFFFFF);
+    draw_point(sdl->player->pos.x + sdl->player->direction.x, sdl->player->pos.y + sdl->player->direction.y, sdl, 0x00FF00);
+
+    draw_grid(sdl);
+    draw_ray(sdl);
+
+    raycast(sdl);
+}
+
+void        draw_point(int x, int y, t_sdl *sdl, t_uint color)
+{
+    if ((x >= 0 && x < WIN_W) && (y >= 0 && y < WIN_H))
+    {
+        SDL_SetRenderDrawColor(sdl->renderer, (color >> 16) & 0xff,
+                                            (color >> 8) & 0xff,
+                                            color & 0xff,
+                                            (color >> 24) & 0xff);
+        SDL_RenderDrawPoint(sdl->renderer, x, y);
+    }
+}
+
+void        draw_line(int x, int y[2], t_sdl *sdl, t_uint color)
+{
+    int y0;
+
+
+    y0 = y[0];
+    SDL_SetRenderDrawColor(sdl->renderer, (color >> 16) & 0xff,
+                                        (color >> 8) & 0xff,
+                                        color & 0xff,
+                                        (color >> 24) & 0xff);
+    while (y0 < y[1])
+    {
+        if ((x < 0 || x > WIN_W) || (y0 < 0 || y0 > WIN_H))
+            break;
+        SDL_RenderDrawPoint(sdl->renderer, x, y0);
+        y0++;
     }
 }

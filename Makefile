@@ -8,15 +8,11 @@ ROOT_PATH = ./srcs/
 
 ROOT_NAME = main.c mlx.c
 
-SRC_ROOT = $(addprefix $(ROOT_PATH), $(ROOT_NAME))
-
 #--------EVENTS---------#
 
 EVT_PATH = ./srcs/event/
 
 EVT_NAME = exit_program.c
-
-SRC_EVT = $(addprefix $(EVT_PATH), $(EVT_NAME))
 
 #----------DRAW---------#
 
@@ -24,15 +20,17 @@ DRAW_PATH = ./srcs/draw/
 
 DRAW_NAME = draw.c
 
-SRC_DRAW = $(addprefix $(DRAW_PATH), $(DRAW_NAME))
-
 #----------MAP----------#
 
 MAP_PATH = ./srcs/map/
 
 MAP_NAME = map_memory.c map_setters.c load_map.c load_map2.c
 
-SRC_MAP = $(addprefix $(MAP_PATH), $(MAP_NAME))
+#----------ENGINE-------#
+
+ENGINE_PATH = ./srcs/engine/
+
+ENGINE_NAME = init_engine.c raycast.c
 
 #--------OBJECTS--------#
 
@@ -44,6 +42,8 @@ OBJ_EVT = $(addprefix $(OBJ_PATH)event/, $(EVT_NAME))
 
 OBJ_MAP = $(addprefix $(OBJ_PATH)map/, $(MAP_NAME))
 
+OBJ_ENGINE = $(addprefix $(OBJ_PATH)engine/, $(ENGINE_NAME))
+
 OBJ_ROOT = $(addprefix $(OBJ_PATH), $(ROOT_NAME))
 
 OBJ_LIST += $(OBJ_DRAW)
@@ -53,6 +53,8 @@ OBJ_LIST += $(OBJ_EVT)
 OBJ_LIST += $(OBJ_MAP)
 
 OBJ_LIST += $(OBJ_ROOT)
+
+OBJ_LIST += $(OBJ_ENGINE)
 
 OBJ = $(OBJ_LIST:%.c=%.o)
 
@@ -79,7 +81,7 @@ endif
 
 ifeq ($(OS), Linux)
 $(NAME): $(OBJ) $(LIBFT_PATH) $(MLX_PATH_LINUX)
-	$(CC) $(FLAGS) $(OBJ) $(LIBFT_PATH) $(MLX_PATH_LINUX) $(INC) -o $(NAME) -lXext -lX11 -lm
+	$(CC) $(FLAGS) $(OBJ) $(LIBFT_PATH) $(MLX_PATH_LINUX) $(INC) -o $(NAME) -lm -lSDL2
 endif
 
 $(OBJ_PATH)%.o: $(ROOT_PATH)%.c $(INC)
@@ -92,6 +94,9 @@ $(OBJ_PATH)event/%.o: $(EVT_PATH)%.c $(INC)
 	$(CC) $(FLAGS) -c $< -o $@
 
 $(OBJ_PATH)map/%.o: $(MAP_PATH)%.c $(INC)
+	$(CC) $(FLAGS) -c $< -o $@
+
+$(OBJ_PATH)engine/%.o: $(ENGINE_PATH)%.c $(INC)
 	$(CC) $(FLAGS) -c $< -o $@
 
 $(LIBFT_PATH):
