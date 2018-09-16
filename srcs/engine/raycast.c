@@ -45,6 +45,9 @@ static void get_ya(t_sdl *sdl, t_raycast *ray, double angle)
     if (angle > 0.00 && angle < 180.00)
     {
         ray->ya = (int)sdl->player->pos.y / CELLSIZE * CELLSIZE + CELLSIZE;
+        if (ray->ya % CELLSIZE != 0)
+            if (angle > 0 && angle < 90)
+                ray->ya++;
         ray->cella.y = ray->ya / CELLSIZE;
         ray->stepya = CELLSIZE;
     }
@@ -63,9 +66,13 @@ static void get_xa(t_sdl *sdl, t_raycast *ray, double angle)
 
     angle_computed = tan(DEGTORAD(360 - angle));
     ray->xa = (int)sdl->player->pos.x + (sdl->player->pos.y - ray->ya) / angle_computed;
-    if (ray->xa % CELLSIZE != 0)
-        ray->xa++;
     ray->stepxa = CELLSIZE / angle_computed;
+    if (ray->xa % CELLSIZE != 0)
+    {
+        if (angle > 0 && angle < 90)
+            ray->xa++;
+            ray->stepxa--;
+    }
     ray->cella.x = ray->xa / CELLSIZE;
     if (angle > 0.0 && angle < 180.0)
         ray->stepxa = -ray->stepxa;
