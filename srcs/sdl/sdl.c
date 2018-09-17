@@ -21,6 +21,7 @@ t_sdl       *init_sdl(t_map *map)
         return (NULL);
     SDL_SetWindowTitle(sdl->window, WIN_NAME);
     SDL_SetWindowPosition(sdl->window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    sdl->texture = SDL_CreateTexture(sdl->renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, WIN_W, WIN_H);
     return (sdl);
 }
 

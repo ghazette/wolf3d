@@ -18,6 +18,7 @@ static void render(t_sdl *sdl)
     SDL_SetRenderDrawColor(sdl->renderer, 0, 0, 0, 255);
     SDL_RenderClear(sdl->renderer);
     draw(sdl);
+    SDL_RenderCopy(sdl->renderer, sdl->texture, NULL, NULL );
     SDL_RenderPresent(sdl->renderer);
 }
 
@@ -32,6 +33,7 @@ static void update_logic(t_sdl *sdl, double dt)
         if (sdl->input.key[SDL_GetScancodeFromKey(SDLK_UP)])
             move_player(sdl, dt);
     }
+    raycast(sdl);
 }
 
 void     start_loop(int enableshowfps, t_sdl *sdl)

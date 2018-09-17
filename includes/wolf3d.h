@@ -19,14 +19,13 @@
 # include <time.h>
 # include "map.h"
 # include <SDL2/SDL.h>
-# define WIN_H 640
-# define WIN_W 1500
+# define WIN_H 720
+# define WIN_W 1280
+# define WIN_H_HALF WIN_H / 2
+# define LINESIZE WIN_W * 4
 # define WIN_NAME "Wolf3D"
 
 #include <stdio.h>
-typedef struct SDL_Window t_sdl_window;
-typedef union SDL_Event t_sdl_event;
-typedef struct SDL_Renderer t_sdl_renderer;
 typedef struct timespec t_timespec;
 typedef unsigned char t_uchar;
 
@@ -36,20 +35,23 @@ typedef struct      s_vec2
     double          y;
 }                   t_vec2;
 
+typedef struct      s_ivec2
+{
+    int             x;
+    int             y;
+}                   t_ivec2;
+
 typedef struct      s_raycast
 {
-    t_vec2          cella;
-    t_vec2          cellb;
-    int             stepxa;
-    int             stepya;
-    int             stepxb;
-    int             stepyb;
-    int             ya;
-    int             xa;
-    int             yb;
-    int             xb;
-    int             stopa;
-    int             stopb;
+    double          walldist;
+    double          camerax;
+    int             hit;
+    int             side;
+    t_ivec2         step;
+    t_ivec2         map;
+    t_vec2          sidedist;
+    t_vec2          raydir;
+    t_vec2          deltadist;
 }                   t_raycast;
 
 typedef struct      s_player
@@ -84,9 +86,11 @@ typedef struct      s_sdl_loop
 
 typedef struct      s_sdl
 {
-    t_sdl_window    *window;
-    t_sdl_event     event;
-    t_sdl_renderer  *renderer;
+    SDL_Window      *window;
+    SDL_Event       event;
+    SDL_Renderer    *renderer;
+    SDL_Texture     *texture;
+    t_ivec2         line[WIN_W];
     t_map           *map;
     t_player        *player;
     int             quit;
@@ -104,7 +108,7 @@ void                start_loop(int enableshowfps, t_sdl *sdl);
 */
 void                draw(t_sdl *sdl);
 void                draw_point(int x, int y, t_sdl *sdl, t_uint color);
-void                draw_line(int x, int y[2], t_sdl *sdl, t_uint color);
+void                draw_line(int x, t_sdl *sdl, uint32_t *pixels, t_uint color);
 
 /*
 ** Engine
