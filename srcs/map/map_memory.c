@@ -10,7 +10,7 @@ t_map   *alloc_map_struct(void)
     return (map);
 }
 
-static int free_map_struct_backward(t_map **map, int n)
+static void free_map_struct_backward(t_map **map, int n)
 {
     if (map)
     {

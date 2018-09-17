@@ -37,25 +37,16 @@ static double is_blocking_cell(t_raycast *ray, t_map *map, double type)
 
 static void get_ya(t_sdl *sdl, t_raycast *ray, double angle)
 {
-    if (angle == 0.00 || angle == 180.00)
-    {
-        ray->stopa = 1;
-        return;
-    }
-    if (angle > 0.00 && angle < 180.00)
+    if (angle >= 0.00 && angle <= 180.00)
     {
         ray->ya = (int)sdl->player->pos.y / CELLSIZE * CELLSIZE + CELLSIZE;
-        if (ray->ya % CELLSIZE != 0)
-            if (angle > 0 && angle < 90)
-                ray->ya++;
         ray->cella.y = ray->ya / CELLSIZE;
         ray->stepya = CELLSIZE;
     }
     else
     {
-        ray->ya = (int)sdl->player->pos.y / CELLSIZE * CELLSIZE;
+        ray->ya = (int)sdl->player->pos.y / CELLSIZE * CELLSIZE - 1;
         ray->cella.y = ray->ya / CELLSIZE;
-        ray->cella.y--;
         ray->stepya = -CELLSIZE;
     }
 }
@@ -65,14 +56,8 @@ static void get_xa(t_sdl *sdl, t_raycast *ray, double angle)
     double angle_computed;
 
     angle_computed = tan(DEGTORAD(360 - angle));
-    ray->xa = (int)sdl->player->pos.x + (sdl->player->pos.y - ray->ya) / angle_computed;
+    ray->xa = (int)sdl->player->pos.x + ((int)sdl->player->pos.y - ray->ya) / angle_computed;
     ray->stepxa = CELLSIZE / angle_computed;
-    if (ray->xa % CELLSIZE != 0)
-    {
-        if (angle > 0 && angle < 90)
-            ray->xa++;
-            ray->stepxa--;
-    }
     ray->cella.x = ray->xa / CELLSIZE;
     if (angle > 0.0 && angle < 180.0)
         ray->stepxa = -ray->stepxa;
@@ -83,7 +68,7 @@ static void get_yb(t_sdl *sdl, t_raycast *ray, double angle)
     double angle_computed;
 
     angle_computed = tan(DEGTORAD(360 - angle));
-    ray->yb = (int)sdl->player->pos.y + (sdl->player->pos.x - ray->xb) * angle_computed;
+    ray->yb = (int)sdl->player->pos.y + ((int)sdl->player->pos.x - ray->xb) * angle_computed;
     ray->stepyb = CELLSIZE * angle_computed;
     ray->cellb.y = ray->yb / CELLSIZE;
     if ((angle > 0.0 && angle < 90.0) || (angle > 270.0 && angle < 360.0))
@@ -92,17 +77,11 @@ static void get_yb(t_sdl *sdl, t_raycast *ray, double angle)
 
 static void get_xb(t_sdl *sdl, t_raycast *ray, double angle)
 {
-    if (angle == 90.00 || angle == 270.00)
+    if (angle >= 90.00 && angle <= 270.00)
     {
-        ray->stopb = 1;
-        return;
-    }
-    if (angle > 90.00 && angle < 270.00)
-    {
-        ray->xb = (int)sdl->player->pos.x / CELLSIZE * CELLSIZE;
+        ray->xb = (int)sdl->player->pos.x / CELLSIZE * CELLSIZE - 1;
         ray->cellb.x = ray->xb / CELLSIZE;
         ray->stepxb = -CELLSIZE;
-        ray->cellb.x--;
     }
     else
     {
@@ -119,20 +98,13 @@ static double   raycast_vertical(t_sdl *sdl, t_raycast *ray, double angle)
     i = 0;
     while (!is_blocking_cell(ray, sdl->map, VERTICAL) && i < 30)
     {
-        if (ray->stopb)
-            break;
         ray->xb += ray->stepxb;
         ray->yb += ray->stepyb;
         ray->cellb.x = ray->xb / CELLSIZE;
         ray->cellb.y = ray->yb / CELLSIZE;
-        if (ray->stepxb < 0)
-            ray->cellb.x--;
         i++;
     }
-    if (((angle > 315 && angle < 360) || (angle > 0 && angle < 45)) || (angle > 135 && angle < 225))
-        return (fabs((int)(sdl->player->pos.x - ray->xb) / cos(DEGTORAD(angle))));
-    else
-        return (fabs((int)(sdl->player->pos.y - ray->yb) / sin(DEGTORAD(angle))));        
+    return (fabs((int)(sdl->player->pos.x - ray->xb) / cos(DEGTORAD(angle))));
 }
 
 static double   raycast_horizontal(t_sdl *sdl, t_raycast *ray, double angle)
@@ -140,27 +112,16 @@ static double   raycast_horizontal(t_sdl *sdl, t_raycast *ray, double angle)
     double i;
 
     i = 0;
-        //printf("ray : x %d y %d\n", ray->xa, ray->ya);
-        //printf("stepx : %d\nstepy : %d\n\n", ray->stepxa, ray->stepya);
     while (!is_blocking_cell(ray, sdl->map, HORIZONTAL) && i < 30)
     {
-        //printf("ray : x %d y %d\n", ray->xa, ray->ya);
-       // printf("stepx : %d\nstepy : %d\n\n", ray->stepxa, ray->stepya);
-        if (ray->stopa)
-            break ;
+
         ray->xa += ray->stepxa;
         ray->ya += ray->stepya;
         ray->cella.x = ray->xa / CELLSIZE;
         ray->cella.y = ray->ya / CELLSIZE;
-        if (ray->stepya < 0)
-            ray->cella.y--;
         i++;
     }
-    if (((angle > 315 && angle < 360) || (angle > 0 && angle < 45)) || (angle > 135 && angle < 225))
-        return (fabs((int)(sdl->player->pos.x - ray->xa) / cos(DEGTORAD(angle))));
-    else
-        return (fabs((int)(sdl->player->pos.y - ray->ya) / sin(DEGTORAD(angle))));
-
+    return (fabs((int)(sdl->player->pos.y - ray->ya) / sin(DEGTORAD(angle))));
 }
 
 void        raycast(t_sdl *sdl)
@@ -168,9 +129,9 @@ void        raycast(t_sdl *sdl)
     t_raycast   ray;
     double      p[2];
     double      angle;
-double wallh;
+    double wallh;
     ft_bzero(&ray, sizeof(t_raycast));
-    angle = 30 + sdl->player->view.angle;
+    angle = (sdl->player->view.fov / 2) + sdl->player->view.angle;
     if (angle > 360)
         angle -= 360;
         double angleb = -30;
@@ -181,7 +142,8 @@ double wallh;
         yy[1] = WIN_H;
         draw_line(j, yy, sdl, 0xCCCCCA);
     }
-
+    //printf("angle : %f\n", sdl->player->view.angle);
+    int i = 0; 
     for (int i = 0; i < (int)sdl->player->view.projectionplane; i++)
     {
         get_ya(sdl, &ray, angle);
@@ -193,7 +155,7 @@ double wallh;
         p[1] = raycast_vertical(sdl, &ray, angle);
         //if (p[1] + 0.01 > p[0])
           //  printf("equal p0 %f /// p1 %f\n", p[0], p[1]);
-        if (p[0] <= p[1])
+        if (p[0] < p[1])
         {
             draw_point(ray.xa, ray.ya, sdl, 0xFFFFFF);
             draw_point(ray.xa + 1, ray.ya, sdl, 0xFFFFFF);
@@ -210,7 +172,7 @@ double wallh;
                     y[0] = 0;
                 if (y[1] > WIN_H)
                     y[1] = WIN_H;
-                draw_line(i + 640, y, sdl, 0x00FF00);
+                draw_line(i + 640, y, sdl, 0x0FF000);
             //printf("cell hit [%d][%d]\n", ray.cella.y, ray.cella.x);
         }
         else
@@ -235,7 +197,7 @@ double wallh;
         if (angle >= 360)
             angle -= 360;
         if (angle <= 0)
-            angle += 360.01;
+            angle += 360.00;
     }
     
 }

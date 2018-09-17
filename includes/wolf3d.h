@@ -52,23 +52,15 @@ typedef struct      s_raycast
     int             stopb;
 }                   t_raycast;
 
-typedef struct      s_view
-{
-    double          fov;
-    double          angle;
-    double          projectionplane;
-    double          planedist;
-    double          rayangle;
-}                   t_view;
-
 typedef struct      s_player
 {
-    t_view          view;
     t_vec2          pos;
     t_vec2          direction;
+    t_vec2          plane;
     t_vec2          direction_strafe;
     double          velocity_move;
     double          velocity_angle;
+    double          angle;
     int             move;
 }                   t_player;
 

@@ -29,31 +29,30 @@ static void draw_grid(t_sdl *sdl)
         i++;
     }
 }
-
+/*
 static void draw_ray(t_sdl *sdl)
 {
     int x;
     int y;
     int i = 0;
-    double viewangle = sdl->player->view.angle + (sdl->player->view.fov / 2);
     double angle;
     
-    while (i < sdl->player->view.projectionplane)
+    while (i < 320)
     {
         angle = DEGTORAD(viewangle);
         x = 100 * cos(angle);
         y = 100 * sin(angle);
-        viewangle -= sdl->player->view.rayangle;
+        viewangle -= sdl->player->rayangle;
         draw_point(sdl->player->pos.x + x, sdl->player->pos.y + y, sdl, 0xFF0000);
         i++;
     }
 
 }
-
+*/
 
 void        draw(t_sdl *sdl)
 {
-    /*draw_point(sdl->player->pos.x, sdl->player->pos.y, sdl, 0xFFFFFF);
+    draw_point(sdl->player->pos.x, sdl->player->pos.y, sdl, 0xFFFFFF);
     draw_point(sdl->player->pos.x+1, sdl->player->pos.y, sdl, 0xFFFFFF);
     draw_point(sdl->player->pos.x-1, sdl->player->pos.y, sdl, 0xFFFFFF);
     draw_point(sdl->player->pos.x, sdl->player->pos.y+1, sdl, 0xFFFFFF);
@@ -61,8 +60,9 @@ void        draw(t_sdl *sdl)
     draw_point(sdl->player->pos.x-1, sdl->player->pos.y+1, sdl, 0xFFFFFF);
     draw_point(sdl->player->pos.x + sdl->player->direction.x, sdl->player->pos.y + sdl->player->direction.y, sdl, 0x00FF00);
 
-    draw_grid(sdl);
-    draw_ray(sdl);*/
+
+    //draw_grid(sdl);
+   // draw_ray(sdl);
 
     raycast(sdl);
 }
