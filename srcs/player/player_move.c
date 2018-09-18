@@ -10,52 +10,33 @@ static void    reset_vec_player(t_sdl *sdl)
 
 void            rotate_player(t_sdl *sdl, double dt, int type)
 {
-    double  x;
-    double  y;
-    double  sinus;
-    double  cosi;
+    double  olddirx;
+    double  oldplanex;
+    double  sinus[2];
+    double  cosi[2];
     double  angle;
-    
-    //reset_vec_player(sdl);
-    /*if (type == ROT_LEFT)
-    {
-        sdl->player->angle -= sdl->player->velocity_angle * dt;
-        if (sdl->player->angle < 0)
-            sdl->player->angle = 358;
-    }
+
+    angle = DEGTORAD(sdl->player->velocity_angle) * dt;
+    cosi[0] = cos(-angle);
+    sinus[0] = sin(-angle);
+    cosi[1] = cos(angle);
+    sinus[1] = sin(angle);
+    olddirx = sdl->player->direction.x;
+    oldplanex = sdl->player->plane.x;
     if (type == ROT_RIGHT)
     {
-        sdl->player->angle += sdl->player->velocity_angle * dt;
-        if (sdl->player->angle > 360)
-            sdl->player->angle = 0;
-    }*/
-    if (type == ROT_RIGHT)
-    {
-        /*
-    double oldDirX = dirX;
-      dirX = dirX * cos(-rotSpeed) - dirY * sin(-rotSpeed);
-      dirY = oldDirX * sin(-rotSpeed) + dirY * cos(-rotSpeed);
-      double oldPlaneX = planeX;
-      planeX = planeX * cos(-rotSpeed) - planeY * sin(-rotSpeed);
-      planeY = oldPlaneX * sin(-rotSpeed) + planeY * cos(-rotSpeed);
-        */
-       double olddirx = sdl->player->direction.x;
-       double oldplanex = sdl->player->plane.x;
-    sdl->player->angle = DEGTORAD(50) * dt;
-    sdl->player->direction.x = sdl->player->direction.x * cos(-sdl->player->angle) - sdl->player->direction.y * sin(-sdl->player->angle);
-    sdl->player->direction.y = olddirx * sin(-sdl->player->angle) + sdl->player->direction.y * cos(-sdl->player->angle);
-    sdl->player->plane.x = sdl->player->plane.x * cos(-sdl->player->angle) - sdl->player->plane.y * sin(-sdl->player->angle);
-    sdl->player->plane.y = oldplanex * sin(-sdl->player->angle) + sdl->player->plane.y * cos(-sdl->player->angle);
+        sdl->player->direction.x = sdl->player->direction.x * cosi[0] - sdl->player->direction.y * sinus[0];
+        sdl->player->direction.y = olddirx * sinus[0] + sdl->player->direction.y * cosi[0];
+        sdl->player->plane.x = sdl->player->plane.x * cosi[0] - sdl->player->plane.y * sinus[0];
+        sdl->player->plane.y = oldplanex * sinus[0] + sdl->player->plane.y * cosi[0];
     }
-    /*
-    angle = DEGTORAD(sdl->player->view.angle);
-    sinus = sin(angle);
-    cosi = cos(angle);
-    x = sdl->player->direction.x * cosi + sdl->player->direction.y * (-sinus);
-    y = sdl->player->direction.x * sinus + sdl->player->direction.y * cosi;
-    sdl->player->direction.x = x;
-    sdl->player->direction.y = y;
-    */
+    if (type == ROT_LEFT)
+    {
+        sdl->player->direction.x = sdl->player->direction.x * cosi[1] - sdl->player->direction.y * sinus[1];
+        sdl->player->direction.y = olddirx * sinus[1] + sdl->player->direction.y * cosi[1];
+        sdl->player->plane.x = sdl->player->plane.x * cosi[1] - sdl->player->plane.y * sinus[1];
+        sdl->player->plane.y = oldplanex * sinus[1] + sdl->player->plane.y * cosi[1];
+    }
 }
 
 void            move_player(t_sdl *sdl, double dt)

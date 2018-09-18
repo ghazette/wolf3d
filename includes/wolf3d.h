@@ -4,10 +4,6 @@
 # define M_PI 3.14159265359
 #endif
 # define DEGTORAD(DEG) ((DEG) * M_PI / 180.0)
-# define CELLSIZE 64
-# define HORIZONTAL 0x02
-# define VERTICAL 0x04
-# define NOHIT -1
 # define LOGIC_STEP 150
 # define ROT_LEFT 0x08
 # define ROT_RIGHT 0x12
@@ -15,6 +11,7 @@
 # define KRED  "\x1B[31m"
 # define KGRN  "\x1B[32m"
 # include "../libft/includes/libft.h"
+# include "typedef.h"
 # include <math.h>
 # include <time.h>
 # include "map.h"
@@ -23,11 +20,10 @@
 # define WIN_W 1280
 # define WIN_H_HALF WIN_H / 2
 # define LINESIZE WIN_W * 4
+# define FOV 60
 # define WIN_NAME "Wolf3D"
 
 #include <stdio.h>
-typedef struct timespec t_timespec;
-typedef unsigned char t_uchar;
 
 typedef struct      s_vec2
 {
@@ -68,7 +64,7 @@ typedef struct      s_player
 
 typedef struct      s_input
 {
-    const t_uchar   *key;
+    const t_uint8   *key;
     int             mousex;
     int             mousey;
     int             mousexrel;
@@ -90,6 +86,7 @@ typedef struct      s_sdl
     SDL_Event       event;
     SDL_Renderer    *renderer;
     SDL_Texture     *texture;
+    SDL_Surface     *surface;
     t_ivec2         line[WIN_W];
     t_map           *map;
     t_player        *player;
@@ -108,7 +105,7 @@ void                start_loop(int enableshowfps, t_sdl *sdl);
 */
 void                draw(t_sdl *sdl);
 void                draw_point(int x, int y, t_sdl *sdl, t_uint color);
-void                draw_line(int x, t_sdl *sdl, uint32_t *pixels, t_uint color);
+void                draw_line(int x, t_sdl *sdl, t_uint color);
 
 /*
 ** Engine

@@ -74,7 +74,7 @@ static void     store_line_to_draw(t_raycast *ray, t_player *player, t_ivec2 lin
         line[x].x = 0;
     line[x].y = wallheight / 2 + WIN_H_HALF;
     if (line[x].y >= WIN_H)
-        line[x].y = WIN_H - 1;
+        line[x].y = WIN_H;
 
 }
 

@@ -15,12 +15,17 @@ static void catch_event(t_sdl *sdl)
 
 static void render(t_sdl *sdl)
 {
+    draw(sdl);
     SDL_SetRenderDrawColor(sdl->renderer, 0, 0, 0, 255);
     SDL_RenderClear(sdl->renderer);
-    draw(sdl);
-    SDL_RenderCopy(sdl->renderer, sdl->texture, NULL, NULL );
-    SDL_RenderPresent(sdl->renderer);
-}
+	SDL_RenderCopy(sdl->renderer, sdl->texture, NULL, NULL);
+	SDL_RenderPresent(sdl->renderer);
+    if (sdl->texture)
+    {
+        SDL_DestroyTexture(sdl->texture);
+        sdl->texture = NULL;
+    }
+   }
 
 static void update_logic(t_sdl *sdl, double dt)
 {

@@ -21,7 +21,13 @@ t_sdl       *init_sdl(t_map *map)
         return (NULL);
     SDL_SetWindowTitle(sdl->window, WIN_NAME);
     SDL_SetWindowPosition(sdl->window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-    sdl->texture = SDL_CreateTexture(sdl->renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, WIN_W, WIN_H);
+    ft_bzero(&sdl->line, sizeof(t_ivec2) * WIN_W);
+    t_uint32 rmask = 0x000000ff;
+    t_uint32 gmask = 0x0000ff00;
+    t_uint32 bmask = 0x00ff0000;
+    t_uint32 amask = 0xff000000;
+    sdl->surface = SDL_CreateRGBSurface(0, WIN_W, WIN_H, 32, rmask, gmask, bmask, amask);
+    sdl->texture = NULL;
     return (sdl);
 }
 

@@ -14,11 +14,12 @@ static int  open_file(char *fn)
 
 static int  check_header(int fd)
 {
-    char buf[7];
+    char    buf[7];
+    int     size;
 
-    read(fd, buf, 6);
+    size = read(fd, buf, 6);
     buf[6] = '\0';
-    if (!ft_strcmp(WOLF_HEADER, buf))
+    if (size == 6 && !ft_strcmp(WOLF_HEADER, buf))
         return (1);
     error_and_free(fd, NULL, "Wrong file format.\n");
     return (0);
