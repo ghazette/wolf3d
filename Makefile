@@ -6,7 +6,7 @@ OS = $(shell uname)
 
 ROOT_PATH = ./srcs/
 
-ROOT_NAME = main.c mlx.c
+ROOT_NAME = main.c
 
 #--------EVENTS---------#
 
@@ -30,7 +30,13 @@ MAP_NAME = map_memory.c map_setters.c load_map.c load_map2.c
 
 ENGINE_PATH = ./srcs/engine/
 
-ENGINE_NAME = init_engine.c raycast.c
+ENGINE_NAME = raycast.c sdl.c sdl_loop.c
+
+#-----------PLAYER------#
+
+PLAYER_PATH = ./srcs/player/
+
+PLAYER_NAME = init_player.c player_move.c
 
 #--------OBJECTS--------#
 
@@ -44,6 +50,8 @@ OBJ_MAP = $(addprefix $(OBJ_PATH)map/, $(MAP_NAME))
 
 OBJ_ENGINE = $(addprefix $(OBJ_PATH)engine/, $(ENGINE_NAME))
 
+OBJ_PLAYER = $(addprefix $(OBJ_PATH)player/, $(PLAYER_NAME))
+
 OBJ_ROOT = $(addprefix $(OBJ_PATH), $(ROOT_NAME))
 
 OBJ_LIST += $(OBJ_DRAW)
@@ -56,62 +64,63 @@ OBJ_LIST += $(OBJ_ROOT)
 
 OBJ_LIST += $(OBJ_ENGINE)
 
+OBJ_LIST += $(OBJ_PLAYER)
+
 OBJ = $(OBJ_LIST:%.c=%.o)
 
 INC =	./includes/wolf3d.h\
 		./includes/map.h\
-		./includes/input.h
+		./includes/typedef.h
 
 LIBFT_PATH = ./libft/libft.a
-
-MLX_PATH = ./minilibx/libmlx.a
-
-MLX_PATH_LINUX = ./minilibx_linux/libmlx_Linux.a
 
 CC = gcc
 
 FLAGS = -O3 -g
 
+
 all: $(NAME)
 
 ifeq ($(OS), Darwin)
-$(NAME): $(OBJ) $(LIBFT_PATH) $(MLX_PATH)
-	$(CC) $(FLAGS) $(OBJ) $(LIBFT_PATH) $(MLX_PATH) -o $(NAME) -framework OpenGl -framework AppKit
+$(NAME): $(OBJ) $(LIBFT_PATH) 
+	$(CC) $(FLAGS) $(OBJ) $(LIBFT_PATH) -o $(NAME) -framework SDL2
 endif
 
 ifeq ($(OS), Linux)
-$(NAME): $(OBJ) $(LIBFT_PATH) $(MLX_PATH_LINUX)
-	$(CC) $(FLAGS) $(OBJ) $(LIBFT_PATH) $(MLX_PATH_LINUX) $(INC) -o $(NAME) -lm -lSDL2
+$(NAME): $(OBJ) $(LIBFT_PATH)
+	$(CC) $(FLAGS) $(OBJ) $(LIBFT_PATH)  $(INC) -o $(NAME) -lm -lSDL2 -lpthread
 endif
 
 $(OBJ_PATH)%.o: $(ROOT_PATH)%.c $(INC)
+	-mkdir -p $(OBJ_PATH)
 	$(CC) $(FLAGS) -c $< -o $@
 
 $(OBJ_PATH)draw/%.o: $(DRAW_PATH)%.c $(INC)
+	-mkdir -p $(OBJ_PATH)draw/
 	$(CC) $(FLAGS) -c $< -o $@
 
 $(OBJ_PATH)event/%.o: $(EVT_PATH)%.c $(INC)
+	-mkdir -p $(OBJ_PATH)event/
 	$(CC) $(FLAGS) -c $< -o $@
 
 $(OBJ_PATH)map/%.o: $(MAP_PATH)%.c $(INC)
+	-mkdir -p $(OBJ_PATH)map/
 	$(CC) $(FLAGS) -c $< -o $@
 
 $(OBJ_PATH)engine/%.o: $(ENGINE_PATH)%.c $(INC)
+	-mkdir -p $(OBJ_PATH)engine/
+	$(CC) $(FLAGS) -c $< -o $@
+
+$(OBJ_PATH)player/%.o: $(PLAYER_PATH)%.c $(INC)
+	-mkdir -p $(OBJ_PATH)player/
 	$(CC) $(FLAGS) -c $< -o $@
 
 $(LIBFT_PATH):
 	make -C ./libft/
 
-$(MLX_PATH):
-	make -C ./minilibx/
-
-$(MLX_PATH_LINUX):
-	make -C ./minilibx_linux/
-
 clean:
 	rm -f $(OBJ)
 	make -C ./libft/ clean
-	make -C ./minilibx/ clean
 
 fclean: clean
 	rm -f $(NAME)

@@ -1,216 +1,94 @@
 #include "../../includes/wolf3d.h"
 
-static double   clamp_angle(double angle)
+static void     set_variables(t_raycast *ray, t_player *player, int x)
 {
-    if (angle > 90.0 && angle < 180.0)
-        return (angle - 90.0);
-    if (angle > 180.0 && angle < 270.0)
-        return (angle - 180.0);
-    if (angle > 270.0 && angle < 360.0)
-        return (angle - 270.0);
-    return angle;
+    ray->camerax = 2 * x / (double)WIN_W - 1;
+    ray->raydir.x = player->direction.x + player->plane.x * ray->camerax;
+    ray->raydir.y = player->direction.y + player->plane.y * ray->camerax;
+
+    ray->map.x = (int)player->pos.x;
+    ray->map.y = (int)player->pos.y;
+
+    ray->deltadist.x = fabs(1.0 / ray->raydir.x);
+    ray->deltadist.y = fabs(1.0 / ray->raydir.y);
 }
 
-static double is_blocking_cell(t_raycast *ray, t_map *map, double type)
+static void     set_raydir(t_raycast *ray, t_vec2 playerpos)
 {
-    int y;
-    int x;
-
-    if (type == HORIZONTAL)
+    if (ray->raydir.x < 0)
     {
-        x = ray->cella.x;
-        y = ray->cella.y;
-    }
-    if (type == VERTICAL)
-    {
-        x = ray->cellb.x;
-        y = ray->cellb.y;
-    }
-    if (x < 0 || x >= map->width)
-        return (0);
-    if (y < 0 || y >= map->height)
-        return (0);
-    if (map->grid[y][x] > 0)
-        return (1);
-    return (0);
-}
-
-static void get_ya(t_sdl *sdl, t_raycast *ray, double angle)
-{
-    if (angle >= 0.00 && angle <= 180.00)
-    {
-        ray->ya = (int)sdl->player->pos.y / CELLSIZE * CELLSIZE + CELLSIZE;
-        ray->cella.y = ray->ya / CELLSIZE;
-        ray->stepya = CELLSIZE;
+        ray->step.x = -1;
+        ray->sidedist.x = (playerpos.x - ray->map.x) * ray->deltadist.x;
     }
     else
     {
-        ray->ya = (int)sdl->player->pos.y / CELLSIZE * CELLSIZE - 1;
-        ray->cella.y = ray->ya / CELLSIZE;
-        ray->stepya = -CELLSIZE;
+        ray->step.x = 1;
+        ray->sidedist.x = (ray->map.x + 1.0 - playerpos.x) * ray->deltadist.x;
     }
-}
-
-static void get_xa(t_sdl *sdl, t_raycast *ray, double angle)
-{
-    double angle_computed;
-
-    angle_computed = tan(DEGTORAD(360 - angle));
-    ray->xa = (int)sdl->player->pos.x + ((int)sdl->player->pos.y - ray->ya) / angle_computed;
-    ray->stepxa = CELLSIZE / angle_computed;
-    ray->cella.x = ray->xa / CELLSIZE;
-    if (angle > 0.0 && angle < 180.0)
-        ray->stepxa = -ray->stepxa;
-}
-
-static void get_yb(t_sdl *sdl, t_raycast *ray, double angle)
-{
-    double angle_computed;
-
-    angle_computed = tan(DEGTORAD(360 - angle));
-    ray->yb = (int)sdl->player->pos.y + ((int)sdl->player->pos.x - ray->xb) * angle_computed;
-    ray->stepyb = CELLSIZE * angle_computed;
-    ray->cellb.y = ray->yb / CELLSIZE;
-    if ((angle > 0.0 && angle < 90.0) || (angle > 270.0 && angle < 360.0))
-        ray->stepyb = -ray->stepyb;
-}
-
-static void get_xb(t_sdl *sdl, t_raycast *ray, double angle)
-{
-    if (angle >= 90.00 && angle <= 270.00)
+    if (ray->raydir.y < 0)
     {
-        ray->xb = (int)sdl->player->pos.x / CELLSIZE * CELLSIZE - 1;
-        ray->cellb.x = ray->xb / CELLSIZE;
-        ray->stepxb = -CELLSIZE;
+        ray->step.y = -1;
+        ray->sidedist.y = (playerpos.y - ray->map.y) * ray->deltadist.y;
     }
     else
     {
-        ray->xb = (int)sdl->player->pos.x / CELLSIZE * CELLSIZE + CELLSIZE;
-        ray->cellb.x = ray->xb / CELLSIZE;
-        ray->stepxb = CELLSIZE;
+        ray->step.y = 1;
+        ray->sidedist.y = (ray->map.y + 1.0 - playerpos.y) * ray->deltadist.y;
     }
 }
 
-static double   raycast_vertical(t_sdl *sdl, t_raycast *ray, double angle)
+static void     get_nearest_wall(t_raycast *ray, int mapheight, int mapwidth, t_map *map)
 {
-    double i;
-
-    i = 0;
-    while (!is_blocking_cell(ray, sdl->map, VERTICAL) && i < 30)
+    ray->hit = 0;
+    while (ray->hit == 0)
     {
-        ray->xb += ray->stepxb;
-        ray->yb += ray->stepyb;
-        ray->cellb.x = ray->xb / CELLSIZE;
-        ray->cellb.y = ray->yb / CELLSIZE;
-        i++;
-    }
-    return (fabs((int)(sdl->player->pos.x - ray->xb) / cos(DEGTORAD(angle))));
-}
-
-static double   raycast_horizontal(t_sdl *sdl, t_raycast *ray, double angle)
-{
-    double i;
-
-    i = 0;
-    while (!is_blocking_cell(ray, sdl->map, HORIZONTAL) && i < 30)
-    {
-
-        ray->xa += ray->stepxa;
-        ray->ya += ray->stepya;
-        ray->cella.x = ray->xa / CELLSIZE;
-        ray->cella.y = ray->ya / CELLSIZE;
-        i++;
-    }
-    return (fabs((int)(sdl->player->pos.y - ray->ya) / sin(DEGTORAD(angle))));
-}
-
-void        raycast(t_sdl *sdl)
-{
-    t_raycast   ray;
-    double      p[2];
-    double      angle;
-    double wallh;
-    ft_bzero(&ray, sizeof(t_raycast));
-    angle = (sdl->player->view.fov / 2) + sdl->player->view.angle;
-    if (angle > 360)
-        angle -= 360;
-        double angleb = -30;
-            for (int j = 640; j < 640 + 320; j++)
-    {
-        int yy[2];
-        yy[0] = WIN_H / 2;
-        yy[1] = WIN_H;
-        draw_line(j, yy, sdl, 0xCCCCCA);
-    }
-    //printf("angle : %f\n", sdl->player->view.angle);
-    int i = 0; 
-    for (int i = 0; i < (int)sdl->player->view.projectionplane; i++)
-    {
-        get_ya(sdl, &ray, angle);
-        get_xa(sdl, &ray, angle);
-        get_xb(sdl, &ray, angle);
-        get_yb(sdl, &ray, angle);
-        //printf("angle %f\n", angle);
-        p[0] = raycast_horizontal(sdl, &ray, angle);
-        p[1] = raycast_vertical(sdl, &ray, angle);
-        //if (p[1] + 0.01 > p[0])
-          //  printf("equal p0 %f /// p1 %f\n", p[0], p[1]);
-        if (p[0] < p[1])
+        if (ray->sidedist.x < ray->sidedist.y)
         {
-            draw_point(ray.xa, ray.ya, sdl, 0xFFFFFF);
-            draw_point(ray.xa + 1, ray.ya, sdl, 0xFFFFFF);
-            draw_point(ray.xa, ray.ya + 1, sdl, 0xFFFFFF);
-            draw_point(ray.xa + 1, ray.ya + 1, sdl, 0xFFFFFF);
-                p[0] *= cos(DEGTORAD(angleb));
-                wallh = (CELLSIZE / p[0]) * sdl->player->view.planedist ;
-
-                int center = WIN_H / 2;
-                int y[2];
-                y[0] = center - (wallh / 2);
-                y[1] = center + (wallh / 2);
-                if (y[0] < 0)
-                    y[0] = 0;
-                if (y[1] > WIN_H)
-                    y[1] = WIN_H;
-                draw_line(i + 640, y, sdl, 0x0FF000);
-            //printf("cell hit [%d][%d]\n", ray.cella.y, ray.cella.x);
+            ray->sidedist.x += ray->deltadist.x;
+            ray->map.x += ray->step.x;
+            ray->side = 0;
         }
         else
         {
-            draw_point(ray.xb, ray.yb, sdl, 0xFF00CC);
-            draw_point(ray.xb + 1, ray.yb, sdl, 0xFF00CC);
-            draw_point(ray.xb, ray.yb + 1, sdl, 0xFF00CC);
-            draw_point(ray.xb + 1, ray.yb + 1, sdl, 0xFF00CC);
-            //printf("cell hit [%d][%d]\n", ray.cellb.y, ray.cellb.x);
-            p[1] *= cos(DEGTORAD(angleb));
-            wallh = (CELLSIZE / p[1]) * sdl->player->view.planedist;
-            int center = WIN_H / 2;
-            int y[] = {center - (wallh / 2), center + (wallh / 2)};
-            if (y[0] < 0)
-                y[0] = 0;
-            if (y[1] > WIN_H)
-                y[1] = WIN_H;
-            draw_line(i + 640, y, sdl, 0x0FF000);
+            ray->sidedist.y += ray->deltadist.y;
+            ray->map.y += ray->step.y;
+            ray->side = 1;
         }
-        angle -= sdl->player->view.rayangle;
-        angleb += sdl->player->view.rayangle;
-        if (angle >= 360)
-            angle -= 360;
-        if (angle <= 0)
-            angle += 360.00;
+        if ((ray->map.y >= 0 && ray->map.x < mapheight) && (ray->map.x >= 0 && ray->map.x < mapwidth))
+            if (map->grid[ray->map.y][ray->map.x] > 0)
+                ray->hit = 1;
     }
-    
 }
 
-/*
-static double      is_in_map(t_raycast *ray, t_map *map, double type)
+static void     store_line_to_draw(t_raycast *ray, t_player *player, t_line line[WIN_W], int x)
 {
-    if (type == VERTICAL)
-        if ((ray->cellb.x >= 0 && ray->cellb.x < map->width) && (ray->cellb.y >= 0 && ray->cellb.y < map->height))
-            return (1);
-    if (type == HORIZONTAL)
-        if ((ray->cella.x >= 0 && ray->cella.x < map->width) && (ray->cella.y >= 0 && ray->cella.y < map->height))
-            return (1);
-    return (0);
+    int wallheight;
+
+    if (ray->side == 0)
+        line[x].walldist = (ray->map.x - player->pos.x + (1 - ray->step.x) / 2) / ray->raydir.x;
+    else
+        line[x].walldist = (ray->map.y - player->pos.y + (1 - ray->step.y) / 2) / ray->raydir.y;
+    wallheight = (int)(WIN_H / line[x].walldist);
+    line[x].start = -wallheight / 2 + WIN_H_HALF;
+    if (line[x].start < 0)
+        line[x].start = 0;
+    line[x].end = wallheight / 2 + WIN_H_HALF;
+    if (line[x].end >= WIN_H)
+        line[x].end = WIN_H;
+
 }
-*/
+
+void            raycast(t_sdl *sdl)
+{
+    t_raycast   ray;
+    int         x;
+
+    x = -1;
+    while (++x < WIN_W)
+    {
+        set_variables(&ray, sdl->player, x);
+        set_raydir(&ray, sdl->player->pos);
+        get_nearest_wall(&ray, sdl->map->height, sdl->map->width, sdl->map);
+        store_line_to_draw(&ray, sdl->player, sdl->line, x);
+    }
+}

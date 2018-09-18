@@ -16,8 +16,8 @@
 # include <time.h>
 # include "map.h"
 # include <SDL2/SDL.h>
-# define WIN_H 720
-# define WIN_W 1280
+# define WIN_H 960
+# define WIN_W 1440
 # define WIN_H_HALF WIN_H / 2
 # define LINESIZE WIN_W * 4
 # define FOV 60
@@ -37,9 +37,15 @@ typedef struct      s_ivec2
     int             y;
 }                   t_ivec2;
 
+typedef struct      s_line
+{
+    int             start;
+    int             end;
+    double          walldist;
+}                   t_line;
+
 typedef struct      s_raycast
 {
-    double          walldist;
     double          camerax;
     int             hit;
     int             side;
@@ -87,7 +93,7 @@ typedef struct      s_sdl
     SDL_Renderer    *renderer;
     SDL_Texture     *texture;
     SDL_Surface     *surface;
-    t_ivec2         line[WIN_W];
+    t_line          line[WIN_W];
     t_map           *map;
     t_player        *player;
     int             quit;
@@ -104,7 +110,6 @@ void                start_loop(int enableshowfps, t_sdl *sdl);
 ** Drawing
 */
 void                draw(t_sdl *sdl);
-void                draw_point(int x, int y, t_sdl *sdl, t_uint color);
 void                draw_line(int x, t_sdl *sdl, t_uint color);
 
 /*
