@@ -62,20 +62,34 @@ static void     get_nearest_wall(t_raycast *ray, int mapheight, int mapwidth, t_
 
 static void     store_line_to_draw(t_raycast *ray, t_player *player, t_line line[WIN_W], int x)
 {
-    int wallheight;
-
     if (ray->side == 0)
         line[x].walldist = (ray->map.x - player->pos.x + (1 - ray->step.x) / 2) / ray->raydir.x;
     else
         line[x].walldist = (ray->map.y - player->pos.y + (1 - ray->step.y) / 2) / ray->raydir.y;
-    wallheight = (int)(WIN_H / line[x].walldist);
-    line[x].start = -wallheight / 2 + WIN_H_HALF;
+    line[x].lineheight = (int)(WIN_H / line[x].walldist);
+    line[x].start = -line[x].lineheight / 2 + WIN_H_HALF;
     if (line[x].start < 0)
         line[x].start = 0;
-    line[x].end = wallheight / 2 + WIN_H_HALF;
+    line[x].end = line[x].lineheight / 2 + WIN_H_HALF;
     if (line[x].end >= WIN_H)
         line[x].end = WIN_H;
+}
 
+static void     get_texture_xy(t_raycast *ray, t_player *player, t_line line[WIN_W], int x)
+{
+    double wallX;
+    if (ray->side == 0)
+        wallX = player->pos.y + line[x].walldist * ray->raydir.y;
+    else
+        wallX = player->pos.x + line[x].walldist * ray->raydir.x;
+    wallX -= floor((wallX));
+
+    //x coordinate on the texture
+    line[x].texX = (int)(wallX * (double)texWidth);
+    if (ray->side == 0 && ray->raydir.x > 0)
+        line[x].texX = texWidth - line[x].texX - 1;
+    if (ray->side == 1 && ray->raydir.y < 0)
+        line[x].texX = texWidth - line[x].texX - 1;
 }
 
 void            raycast(t_sdl *sdl)
@@ -90,5 +104,6 @@ void            raycast(t_sdl *sdl)
         set_raydir(&ray, sdl->player->pos);
         get_nearest_wall(&ray, sdl->map->height, sdl->map->width, sdl->map);
         store_line_to_draw(&ray, sdl->player, sdl->line, x);
+        get_texture_xy(&ray, sdl->player, sdl->line, x);
     }
 }

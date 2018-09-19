@@ -22,7 +22,8 @@
 # define LINESIZE WIN_W * 4
 # define FOV 60
 # define WIN_NAME "Wolf3D"
-
+# define texWidth 64
+# define texHeight 64
 #include <stdio.h>
 
 typedef struct      s_vec2
@@ -42,6 +43,8 @@ typedef struct      s_line
     int             start;
     int             end;
     double          walldist;
+    double          lineheight;
+    int             texX;
 }                   t_line;
 
 typedef struct      s_raycast
