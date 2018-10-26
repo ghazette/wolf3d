@@ -34,7 +34,7 @@ void        draw(t_sdl *sdl)
         r = 0xff; g = 0xff; b = 0xff, a = 0xff;
 
         t_uint32 h = sdl->line[x].end - sdl->line[x].start;
-        t_uint32 c = apply_shadow(sdl, x, 0x25, 0xcf, 0x9a, 23);
+        t_uint32 c = apply_shadow(sdl, x, 0xff, 0xff, 0xff, 15);
         draw_line(x, sdl, c);
     }
     SDL_UnlockSurface(sdl->surface);
@@ -58,14 +58,14 @@ void        draw_line(int x, t_sdl *sdl, t_uint color)
     //int xcolor = x * 256 / texWidth;
     int ycolor = y * 256 / texHeight;
     int xycolor = y * 128 / texHeight + x * 128 / texWidth;
-    texture[0][texWidth * y + v] = 65536 * 254 * (v != y && v != texWidth - y); //flat red texture with black cross
+   /* texture[0][texWidth * y + v] = 65536 * 254 * (v != y && v != texWidth - y); //flat red texture with black cross
     texture[1][texWidth * y + v] = xycolor + 256 * xycolor + 65536 * xycolor; //sloped greyscale
-    texture[2][texWidth * y + v] = 256 * xycolor + 65536 * xycolor; //sloped yellow gradient
+    texture[2][texWidth * y + v] = 256 * xycolor + 65536 * xycolor; //sloped yellow gradient*/
     texture[3][texWidth * y + v] = xorcolor + 256 * xorcolor + 65536 * xorcolor; //xor greyscale
-    texture[4][texWidth * y + v] = 256 * xorcolor; //xor green
+  /*  texture[4][texWidth * y + v] = 256 * xorcolor; //xor green
     texture[5][texWidth * y + v] = 65536 * 192 * (x % 16 && y % 16); //red bricks
     texture[6][texWidth * y + v] = 65536 * ycolor; //red gradient
-    texture[7][texWidth * y + v] = 128 + 256 * 128 + 65536 * 128; //flat grey texture
+    texture[7][texWidth * y + v] = 128 + 256 * 128 + 65536 * 128; //flat grey texture*/
   }
     while (++i < sdl->line[x].start)
         pixels[(i * sdl->surface->w + x)] = 0xffff8877;
@@ -78,7 +78,7 @@ void        draw_line(int x, t_sdl *sdl, t_uint color)
        //printf("%d\n", texHeight * texY + sdl->line[x].texX);
        //exit(0);
         if (texHeight * texY + sdl->line[x].texX < 4096)
-            color = 0x000000ff + texture[2][texHeight * texY + sdl->line[x].texX];
+            color = 0x000000ff + texture[3][texHeight * texY + sdl->line[x].texX];
         //make color darker for y-sides: R, G and B byte each divided through two with a "shift" and an "and"
        // if  (side == 1) color = (color >> 1) & 8355711;
         pixels[(sdl->line[x].start * sdl->surface->w + x)] = color;

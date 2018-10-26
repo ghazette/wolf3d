@@ -78,7 +78,6 @@ CC = gcc
 
 FLAGS = -O3 -g
 
-
 all: $(NAME)
 
 ifeq ($(OS), Darwin)

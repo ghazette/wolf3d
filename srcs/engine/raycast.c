@@ -82,9 +82,8 @@ static void     get_texture_xy(t_raycast *ray, t_player *player, t_line line[WIN
         wallX = player->pos.y + line[x].walldist * ray->raydir.y;
     else
         wallX = player->pos.x + line[x].walldist * ray->raydir.x;
-    wallX -= floor((wallX));
+    wallX -= floor(wallX);
 
-    //x coordinate on the texture
     line[x].texX = (int)(wallX * (double)texWidth);
     if (ray->side == 0 && ray->raydir.x > 0)
         line[x].texX = texWidth - line[x].texX - 1;
